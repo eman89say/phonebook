@@ -12,14 +12,14 @@
 	  </p>
 	  <div class="panel-block">
 	    <p class="control has-icons-left">
-	      <input class="input is-small" type="text" placeholder="search">
+	      <input class="input is-small" type="text" placeholder="search" v-model="searchQuery">
 	      <span class="icon is-small is-left">
 	        <i class="fa fa-search"></i>
 	      </span>
 	    </p>
 	  </div>
 	  
-	  <a class="panel-block is-active" v-for="item,key in lists">
+	  <a class="panel-block is-active" v-for="item,key in temp">
 	  <span class="column is-9">
 	     {{item.name}}
 	  </span>
@@ -57,12 +57,30 @@ let Update = require('./Update.vue');
          updateActive:'',
          lists:{},
          errors:{},
-         loading:false
+         loading:false,
+         searchQuery:'',
+         temp:''
+       }
+    },
+    watch:{
+       searchQuery(){
+         if(this.searchQuery.length > 0){
+           this.temp=  this.lists.filter((item)=>{
+
+            return Object.keys(item).some((key)=>{
+                let string = String(item[key])
+                 return string.toLowerCase().indexOf(this.searchQuery.toLowerCase()) >-1
+             })
+               
+            });
+         } else{
+               this.temp= this.lists;
+         }
        }
     },
     mounted(){
        axios.post('/getData').
-       then((response) => this.lists=response.data)
+       then((response) => this.lists= this.temp = response.data)
 		  .catch( (error) => this.errors= error.response.data.errors)
     },
     methods:{
@@ -70,11 +88,11 @@ let Update = require('./Update.vue');
           this.addActive='is-active';
        },
        openShow(key){
-          this.$children[1].list = this.lists[key]
+          this.$children[1].list = this.temp[key]
           this.showActive='is-active';
        },
        openUpdate(key){
-          this.$children[2].list = this.lists[key]
+          this.$children[2].list = this.temp[key]
           this.updateActive='is-active';
        },
        close(){
